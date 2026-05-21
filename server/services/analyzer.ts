@@ -1,22 +1,22 @@
 import OpenAI from 'openai';
 import { randomUUID } from 'crypto';
+import dotenv from 'dotenv';
 import type {
   AnalyzeMeetingRequest,
   MeetingAnalysis,
   MeetingTranscript,
   TranscriptSegment,
-} from '../../shared/types.js';
-import { getGraphClient } from './graph.js';
-import { calculateCost } from './cost-calculator.js';
+} from '../../shared/types.ts';
+import { getGraphClient } from './graph.ts';
+import { calculateCost } from './cost-calculator.ts';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  ...(process.env.AZURE_OPENAI_ENDPOINT && {
-    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT}`,
-    defaultQuery: { 'api-version': '2024-06-01' },
-    defaultHeaders: { 'api-key': process.env.AZURE_OPENAI_API_KEY },
-  }),
-});
+dotenv.config();
+
+function getOpenAI() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 // In-memory store (replace with DB in production)
 const analysisStore = new Map<string, MeetingAnalysis>();
@@ -37,13 +37,34 @@ export async function analyzeMeeting(request: AnalyzeMeetingRequest): Promise<Me
   if (request.meetingId) {
     transcript = await fetchTranscript(request.meetingId);
   } else if (request.transcript) {
-    transcript = parseRawTranscript(request.transcript);
+    transcript = parseRawTranscript(request.transcript, request.participants, request.subject);
   } else {
     throw new Error('No meeting ID or transcript provided');
   }
 
   if (request.agenda) {
     transcript.agenda = request.agenda;
+  }
+
+  // Override duration if manually specified
+  if (request.durationMinutes) {
+    const start = new Date();
+    const end = new Date(start.getTime() + request.durationMinutes * 60000);
+    transcript.startTime = start.toISOString();
+    transcript.endTime = end.toISOString();
+  }
+
+  // Add manual participants if provided
+  if (request.participants?.length) {
+    transcript.participants = request.participants.map((name) => ({
+      id: '',
+      displayName: name.trim(),
+      email: '',
+    }));
+  }
+
+  if (request.subject) {
+    transcript.subject = request.subject;
   }
 
   const analysis = await runAIAnalysis(transcript, request.hourlyRate);
@@ -93,7 +114,7 @@ async function fetchTranscript(meetingId: string): Promise<MeetingTranscript> {
   };
 }
 
-function parseRawTranscript(text: string): MeetingTranscript {
+function parseRawTranscript(text: string, manualParticipants?: string[], subject?: string): MeetingTranscript {
   const lines = text.split('\n').filter((l) => l.trim());
   const segments: TranscriptSegment[] = [];
 
@@ -105,18 +126,28 @@ function parseRawTranscript(text: string): MeetingTranscript {
         text: match[2].trim(),
         timestamp: '',
       });
+    } else {
+      // Lines without "Speaker:" format — attribute to "Unknown"
+      segments.push({
+        speaker: { id: '', displayName: 'Unknown', email: '' },
+        text: line.trim(),
+        timestamp: '',
+      });
     }
   }
 
   const speakers = [...new Set(segments.map((s) => s.speaker.displayName))];
+  const allParticipants = manualParticipants?.length
+    ? manualParticipants.map((name) => ({ id: '', displayName: name.trim(), email: '' }))
+    : speakers.map((name) => ({ id: '', displayName: name, email: '' }));
 
   return {
     meetingId: randomUUID(),
-    subject: 'Uploaded Meeting',
+    subject: subject || 'Manuelt møte',
     startTime: new Date().toISOString(),
     endTime: new Date().toISOString(),
-    organizer: segments[0]?.speaker || { id: '', displayName: 'Unknown', email: '' },
-    participants: speakers.map((name) => ({ id: '', displayName: name, email: '' })),
+    organizer: allParticipants[0] || { id: '', displayName: 'Unknown', email: '' },
+    participants: allParticipants,
     segments,
   };
 }
@@ -232,8 +263,8 @@ ${transcript.agenda ? `Agenda: ${transcript.agenda}` : 'No agenda provided (that
 TRANSCRIPT:
 ${fullText.substring(0, 12000)}`;
 
-  const response = await openai.chat.completions.create({
-    model: process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o',
+  const response = await getOpenAI().chat.completions.create({
+    model: 'gpt-4o',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },

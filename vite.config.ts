@@ -7,7 +7,7 @@ export default defineConfig({
   root: './client',
   resolve: {
     alias: {
-      '@shared': path.resolve(__dirname, '../shared'),
+      '@shared': path.resolve(__dirname, 'shared'),
     },
   },
   server: {
@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../dist/client',
+    outDir: 'dist',
     emptyOutDir: true,
   },
 });

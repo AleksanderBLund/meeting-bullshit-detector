@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { getGraphClient } from '../services/graph.js';
-import type { MeetingTranscript } from '../../shared/types.js';
+import { getGraphClient } from '../services/graph.ts';
+import type { MeetingTranscript } from '../../shared/types.ts';
 
 export const meetingsRouter = Router();
 

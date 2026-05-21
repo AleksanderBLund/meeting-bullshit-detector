@@ -1,4 +1,4 @@
-import type { CostBreakdown } from '../../shared/types.js';
+import type { CostBreakdown } from '../../shared/types.ts';
 
 export function calculateCost(
   durationMinutes: number,

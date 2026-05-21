@@ -101,6 +101,9 @@ export interface AnalyzeMeetingRequest {
   transcript?: string; // raw text input as alternative
   agenda?: string;
   hourlyRate?: number;
+  subject?: string;
+  participants?: string[]; // manual participant list
+  durationMinutes?: number; // manual duration
 }
 
 export interface AnalyzeMeetingResponse {

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import crypto from 'crypto';
-import { analyzeMeeting } from '../services/analyzer.js';
-import { getGraphClient } from '../services/graph.js';
-import type { WebhookPayload } from '../../shared/types.js';
+import { analyzeMeeting } from '../services/analyzer.ts';
+import { getGraphClient } from '../services/graph.ts';
+import type { WebhookPayload } from '../../shared/types.ts';
 
 export const webhookRouter = Router();
 

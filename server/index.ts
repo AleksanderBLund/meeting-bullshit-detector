@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { meetingsRouter } from './routes/meetings.js';
-import { webhookRouter } from './routes/webhook.js';
-import { analysisRouter } from './routes/analysis.js';
+import { meetingsRouter } from './routes/meetings.ts';
+import { webhookRouter } from './routes/webhook.ts';
+import { analysisRouter } from './routes/analysis.ts';
 
 dotenv.config();
 

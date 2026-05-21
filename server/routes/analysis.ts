@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { analyzeMeeting, getStoredAnalyses, getStoredAnalysis } from '../services/analyzer.js';
-import type { AnalyzeMeetingRequest } from '../../shared/types.js';
+import { analyzeMeeting, getStoredAnalyses, getStoredAnalysis } from '../services/analyzer.ts';
+import type { AnalyzeMeetingRequest } from '../../shared/types.ts';
 
 export const analysisRouter = Router();
 
