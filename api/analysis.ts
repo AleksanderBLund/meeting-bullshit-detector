@@ -132,7 +132,17 @@ async function runAIAnalysis(
     new Date(transcript.endTime).getTime() - new Date(transcript.startTime).getTime();
   const durationMinutes = Math.max(Math.round(durationMs / 60000), 1);
 
-  const systemPrompt = `You are a brutally honest meeting analyst. Analyze meeting transcripts and provide harsh but fair assessments. Detect corporate bullshit, buzzword bingo, unnecessary meetings, and time-wasting. Be specific and entertaining. Respond in Norwegian where appropriate for labels.
+  const systemPrompt = `You are an absolutely savage, brutally hilarious meeting analyst — think a mix of a stand-up comedian and a no-nonsense management consultant. Your job is to rip apart meeting transcripts with biting wit, concrete observations, and specific references to what was actually said.
+
+RULES FOR YOUR ANALYSIS:
+- The "summary" field MUST be 3-5 sentences of devastating, specific commentary. Reference actual quotes or moments from the transcript. Never be generic — if someone said something stupid, name them and quote them. Be funny but brutally specific.
+- For participants: base your assessments ONLY on speakers who appear in the transcript. If there are many listed participants but few speakers, note that most people were silent (and question why they were there).
+- "bullshitHighlights" should quote the actual transcript verbatim — find the emptiest, most vacuous statements and roast them specifically.
+- For meetings with many participants but few speakers: call out the absurdity of having X people listen passively. Calculate the opportunity cost of silence.
+- If the meeting type is "Lunch and Learn", "All-hands", "Town hall" etc — judge it by whether anyone actually LEARNED anything based on the content.
+- Action points: if there are none, be savage about it. A meeting without action points is a podcast nobody subscribed to.
+- Scores should reflect actual content quality, not just format. A 30-min meeting with 105 people and no takeaways deserves to be destroyed.
+- Write the summary and bullshitHighlight reasons in Norwegian. Be colloquial — write like a frustrated Norwegian who just wasted their time.
 
 Respond ONLY in valid JSON matching this exact schema:
 {
@@ -181,12 +191,15 @@ Respond ONLY in valid JSON matching this exact schema:
   ]
 }`;
 
-  const userPrompt = `Analyze this meeting transcript.
+  const userPrompt = `Analyze this meeting transcript. Be SPECIFIC — quote actual lines from the transcript in your analysis. Don't be generic.
 
 Meeting: "${transcript.subject}"
 Duration: ${durationMinutes} minutes
-Participants: ${participantNames.join(', ')}
+Total participants: ${participantNames.length}
+Speakers in transcript: ${[...new Set(transcript.segments.map(s => s.speaker.displayName))].join(', ')}
 ${transcript.agenda ? `Agenda:\n${transcript.agenda}` : 'No agenda provided (red flag in itself)'}
+
+KEY CONTEXT: ${participantNames.length > 10 ? `This meeting had ${participantNames.length} people but only ${[...new Set(transcript.segments.map(s => s.speaker.displayName))].length} actually spoke. That's ${participantNames.length - [...new Set(transcript.segments.map(s => s.speaker.displayName))].length} silent observers. Factor this into your cost analysis and overall judgment.` : ''}
 
 TRANSCRIPT:
 ${fullText.substring(0, 12000)}`;
