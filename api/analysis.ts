@@ -269,12 +269,12 @@ function calculateCost(
   const totalCost = (durationMinutes / 60) * participantCount * hourlyRate;
   const costPerMinute = totalCost / durationMinutes;
 
+  // Verdict based on total meeting cost — because that's what actually matters
   let verdict: CostBreakdown['verdict'];
-  const costPerPerson = totalCost / participantCount;
-  if (costPerPerson < 500) verdict = 'excellent';
-  else if (costPerPerson < 1500) verdict = 'acceptable';
-  else if (costPerPerson < 3000) verdict = 'expensive';
-  else verdict = 'wasteful';
+  if (totalCost < 2000) verdict = 'excellent';
+  else if (totalCost < 10000) verdict = 'acceptable';
+  else if (totalCost < 30000) verdict = 'expensive';
+  else verdict = 'wasteful'; // 30k+ for a single meeting is burning money
 
   return {
     totalCost: Math.round(totalCost),
