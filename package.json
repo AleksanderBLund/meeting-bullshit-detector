@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@azure/identity": "^4.2.0",
+    "@azure/msal-browser": "^5.11.0",
+    "@azure/msal-react": "^5.4.2",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

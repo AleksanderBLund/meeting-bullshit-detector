@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MeetingList } from './components/MeetingList';
 import { MeetingAnalysisView } from './components/MeetingAnalysis';
 import { UploadTranscript } from './components/UploadTranscript';
+import { TeamsConnect } from './components/TeamsConnect';
 import { fetchAnalyses } from './lib/api';
 import type { MeetingAnalysis } from '../../shared/types';
 
@@ -9,7 +10,7 @@ export function App() {
   const [analyses, setAnalyses] = useState<MeetingAnalysis[]>([]);
   const [selectedAnalysis, setSelectedAnalysis] = useState<MeetingAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'list' | 'upload'>('list');
+  const [view, setView] = useState<'list' | 'teams' | 'upload'>('teams');
 
   useEffect(() => {
     loadAnalyses();
@@ -46,6 +47,16 @@ export function App() {
           </div>
           <div className="flex gap-2">
             <button
+              onClick={() => setView('teams')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                view === 'teams'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              🔗 Teams
+            </button>
+            <button
               onClick={() => { setView('list'); setSelectedAnalysis(null); }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 view === 'list'
@@ -63,7 +74,7 @@ export function App() {
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               }`}
             >
-              + New Analysis
+              + Manual
             </button>
           </div>
         </div>
@@ -71,6 +82,10 @@ export function App() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {view === 'teams' && (
+          <TeamsConnect onAnalysisComplete={handleAnalysisComplete} />
+        )}
+
         {view === 'upload' && (
           <UploadTranscript onComplete={handleAnalysisComplete} />
         )}
